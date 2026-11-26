@@ -11,8 +11,8 @@ const vscode = acquireVsCodeApi();
 
 let currentText = '';
 let currentBaseUri = '';
-let isUpdatingFromSelf = false;
-let updateTimer: any = null;
+let isUserEditingInPreview = false;
+let previewEditTimer: any = null;
 
 const mdRenderer = createMarkdownRenderer(() => currentBaseUri);
 const htmlToMd = createHtmlToMarkdownConverter();
@@ -22,11 +22,19 @@ const previewContent = document.getElementById('preview-content') as HTMLDivElem
 const previewGutter = document.getElementById('preview-gutter') as HTMLDivElement;
 const previewScroll = document.getElementById('preview-scroll') as HTMLDivElement;
 
-// Render markdown to preview
+// Render markdown to preview while strictly preserving scroll position
 function renderPreview(text: string) {
+  const savedScrollTop = previewScroll.scrollTop;
+
   const html = mdRenderer.render(text);
   previewContent.innerHTML = html;
   updateGutters();
+
+  // Restore scroll position immediately and on next animation frame
+  previewScroll.scrollTop = savedScrollTop;
+  requestAnimationFrame(() => {
+    previewScroll.scrollTop = savedScrollTop;
+  });
 }
 
 // Update line numbers gutter cleanly
@@ -75,14 +83,29 @@ function updateGutters() {
   });
 }
 
+// Track user focus inside preview
+previewContent.addEventListener('focus', () => {
+  isUserEditingInPreview = true;
+});
+
+previewContent.addEventListener('blur', () => {
+  setTimeout(() => {
+    const isStillFocused = document.activeElement === previewContent || previewContent.contains(document.activeElement);
+    if (!isStillFocused) {
+      isUserEditingInPreview = false;
+    }
+  }, 1000);
+});
+
 // Event: User edits directly inside Preview (Typora Live Editing)
 previewContent.addEventListener('input', () => {
-  if (updateTimer) {
-    clearTimeout(updateTimer);
+  isUserEditingInPreview = true;
+
+  if (previewEditTimer) {
+    clearTimeout(previewEditTimer);
   }
 
-  updateTimer = setTimeout(() => {
-    isUpdatingFromSelf = true;
+  previewEditTimer = setTimeout(() => {
     try {
       const newMarkdown = htmlToMd.turndown(previewContent.innerHTML);
       currentText = newMarkdown;
@@ -91,15 +114,21 @@ previewContent.addEventListener('input', () => {
         type: 'updateText',
         text: currentText
       });
+
+      // Update gutter markers without resetting user DOM
       updateGutters();
     } catch (e) {
       console.error('Error converting HTML to Markdown:', e);
     }
 
+    // Keep editing lock active for 1.5s after typing to absorb echoes
     setTimeout(() => {
-      isUpdatingFromSelf = false;
-    }, 120);
-  }, 250);
+      const isStillFocused = document.activeElement === previewContent || previewContent.contains(document.activeElement);
+      if (!isStillFocused) {
+        isUserEditingInPreview = false;
+      }
+    }, 1500);
+  }, 200);
 });
 
 // Checkbox click support
@@ -120,8 +149,6 @@ window.addEventListener('message', (event) => {
   const message = event.data;
   switch (message.type) {
     case 'init':
-    case 'update':
-      if (isUpdatingFromSelf) return;
       if (message.baseUri) {
         currentBaseUri = message.baseUri;
       }
@@ -129,13 +156,20 @@ window.addEventListener('message', (event) => {
       renderPreview(currentText);
       break;
 
-    case 'scrollToLine':
-      if (message.line) {
-        const target = document.querySelector(`[data-line="${message.line}"]`);
-        if (target) {
-          (target as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+    case 'update':
+      if (message.baseUri) {
+        currentBaseUri = message.baseUri;
       }
+      // If user is currently focused or typing in preview, do not destroy active DOM/cursor!
+      const isFocused = document.activeElement === previewContent || previewContent.contains(document.activeElement);
+      if (isUserEditingInPreview || isFocused) {
+        currentText = message.text || '';
+        return;
+      }
+
+      currentText = message.text || '';
+      // Re-render HTML while strictly maintaining scroll position
+      renderPreview(currentText);
       break;
   }
 });

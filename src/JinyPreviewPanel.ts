@@ -91,23 +91,6 @@ export class JinyPreviewPanel {
       this.disposables
     );
 
-    // Track scroll in active editor and scroll the preview
-    vscode.window.onDidChangeTextEditorVisibleRanges(
-      (e) => {
-        if (e.textEditor.document.uri.toString() === this.document.uri.toString()) {
-          const firstVisibleLine = e.visibleRanges[0]?.start.line;
-          if (firstVisibleLine !== undefined) {
-            this.panel.webview.postMessage({
-              type: 'scrollToLine',
-              line: firstVisibleLine + 1
-            });
-          }
-        }
-      },
-      null,
-      this.disposables
-    );
-
     // Set HTML with embedded initial content
     this.panel.webview.html = getWebviewContent(
       this.panel.webview,
