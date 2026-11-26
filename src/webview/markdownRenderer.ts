@@ -23,6 +23,21 @@ export function createMarkdownRenderer(getBaseUri?: () => string) {
   // Enable KaTeX math plugin
   md.use(mathPlugin);
 
+  // Support Korean intra-word closing emphasis (e.g. **REINFORCE(순수 정책 경사법)**였습니다)
+  const origScanDelims = (md.inline as any).State.prototype.scanDelims;
+  (md.inline as any).State.prototype.scanDelims = function (start: number, canSplitWord: boolean) {
+    const res = origScanDelims.call(this, start, canSplitWord);
+    const marker = this.src.charCodeAt(start);
+    if (marker === 0x2A /* * */) {
+      const lastChar = start > 0 ? this.src.charCodeAt(start - 1) : 0x20;
+      const isLastWhiteSpace = lastChar === 0x20 || lastChar === 0x09 || lastChar === 0x0A || lastChar === 0x0D;
+      if (!isLastWhiteSpace) {
+        res.can_close = true;
+      }
+    }
+    return res;
+  };
+
   // Inject line number mapping attributes into block tags
   const injectLineNumbers = (originalRule: any) => {
     return (tokens: any[], idx: number, options: any, env: any, self: any) => {
