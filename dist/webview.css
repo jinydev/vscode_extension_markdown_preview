@@ -104,6 +104,33 @@ html, body {
   background-color: var(--block-hover-bg);
 }
 
+/* Typora-style Front Matter Card */
+.front-matter-block {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px 18px;
+  margin: 0 0 24px 0;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #475569;
+  position: relative;
+}
+
+.front-matter-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: inherit !important;
+  white-space: pre-wrap !important;
+  word-break: break-all;
+}
+
 /* Headings */
 .preview-content h1,
 .preview-content h2,

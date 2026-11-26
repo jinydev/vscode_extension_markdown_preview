@@ -1,6 +1,7 @@
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import { mathPlugin } from './markdownMath';
+import { frontMatterPlugin } from './markdownFrontMatter';
 
 export function createMarkdownRenderer(getBaseUri?: () => string) {
   const md = new MarkdownIt({
@@ -19,6 +20,9 @@ export function createMarkdownRenderer(getBaseUri?: () => string) {
       return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`;
     }
   });
+
+  // Enable Typora-style Front Matter plugin
+  md.use(frontMatterPlugin);
 
   // Enable KaTeX math plugin
   md.use(mathPlugin);

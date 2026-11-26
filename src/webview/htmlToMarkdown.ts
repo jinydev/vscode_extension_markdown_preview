@@ -9,6 +9,21 @@ export function createHtmlToMarkdownConverter() {
     emDelimiter: '*'
   });
 
+  // Preserve Front Matter block
+  turndown.addRule('frontMatter', {
+    filter: function (node) {
+      return (
+        node.nodeName === 'DIV' &&
+        node.classList &&
+        node.classList.contains('front-matter-block')
+      );
+    },
+    replacement: function (_content, node) {
+      const text = node.textContent || '';
+      return `---\n${text.trim()}\n---\n\n`;
+    }
+  });
+
   // Preserve KaTeX math formulas
   turndown.addRule('katexMath', {
     filter: function (node) {
