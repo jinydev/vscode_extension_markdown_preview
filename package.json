@@ -1,0 +1,263 @@
+{
+  "name": "jiny-markdown",
+  "displayName": "Jiny Markdown - Live Editor & preview",
+  "description": "Typora-like WYSIWYG markdown editor and split preview with white background, line numbers, and bidirectional sync.",
+  "version": "1.0.4",
+  "publisher": "jiny",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jiny/jiny-markdown"
+  },
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Formatters",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "markdown",
+    "typora",
+    "wysiwyg",
+    "preview",
+    "split editor",
+    "live preview"
+  ],
+  "activationEvents": [
+    "onCustomEditor:jinyMarkdown.customEditor",
+    "onCommand:jinyMarkdown.openEditor",
+    "onCommand:jinyMarkdown.openPreview",
+    "onCommand:jinyMarkdown.toggleSplit",
+    "onCommand:jinyMarkdown.setModeCode",
+    "onCommand:jinyMarkdown.setModeSplit",
+    "onCommand:jinyMarkdown.setModePreview",
+    "onCommand:jinyMarkdown.cycleMode"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "jinyMarkdown.customEditor",
+        "displayName": "Jiny Markdown - Live Editor & preview",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          },
+          {
+            "filenamePattern": "*.markdown"
+          },
+          {
+            "filenamePattern": "*.mdown"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
+    "commands": [
+      {
+        "command": "jinyMarkdown.openEditor",
+        "title": "Jiny MD: Open in Jiny Markdown Editor",
+        "category": "Jiny Markdown",
+        "icon": "$(book)"
+      },
+      {
+        "command": "jinyMarkdown.openPreview",
+        "title": "Jiny MD: Open Side Preview (Cmd+Option+M)",
+        "category": "Jiny Markdown",
+        "icon": "$(split-horizontal)"
+      },
+      {
+        "command": "jinyMarkdown.toggleSplit",
+        "title": "Jiny MD: Toggle Split View",
+        "category": "Jiny Markdown",
+        "icon": "$(layout-sidebar-right)"
+      },
+      {
+        "command": "jinyMarkdown.setModeCode",
+        "title": "Jiny MD: Switch to Code Mode",
+        "category": "Jiny Markdown"
+      },
+      {
+        "command": "jinyMarkdown.setModeSplit",
+        "title": "Jiny MD: Switch to Split Mode",
+        "category": "Jiny Markdown"
+      },
+      {
+        "command": "jinyMarkdown.setModePreview",
+        "title": "Jiny MD: Switch to Typora Preview Mode",
+        "category": "Jiny Markdown"
+      },
+      {
+        "command": "jinyMarkdown.cycleMode",
+        "title": "Jiny MD: Cycle View Mode (Code / Split / Preview)",
+        "category": "Jiny Markdown"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "jinyMarkdown.openPreview",
+        "key": "ctrl+alt+m",
+        "mac": "cmd+alt+m",
+        "when": "editorLangId == markdown"
+      },
+      {
+        "command": "jinyMarkdown.openPreview",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m",
+        "when": "editorLangId == markdown"
+      },
+      {
+        "command": "jinyMarkdown.toggleSplit",
+        "key": "ctrl+k m",
+        "mac": "cmd+k m",
+        "when": "editorLangId == markdown"
+      },
+      {
+        "command": "jinyMarkdown.toggleSplit",
+        "key": "ctrl+k v",
+        "mac": "cmd+k v",
+        "when": "editorLangId == markdown"
+      },
+      {
+        "command": "jinyMarkdown.setModeCode",
+        "key": "ctrl+alt+1",
+        "mac": "cmd+alt+1"
+      },
+      {
+        "command": "jinyMarkdown.setModeCode",
+        "key": "ctrl+shift+1",
+        "mac": "cmd+shift+1",
+        "when": "activeCustomEditorId == 'jinyMarkdown.customEditor'"
+      },
+      {
+        "command": "jinyMarkdown.setModeSplit",
+        "key": "ctrl+alt+2",
+        "mac": "cmd+alt+2"
+      },
+      {
+        "command": "jinyMarkdown.setModeSplit",
+        "key": "ctrl+shift+2",
+        "mac": "cmd+shift+2",
+        "when": "activeCustomEditorId == 'jinyMarkdown.customEditor'"
+      },
+      {
+        "command": "jinyMarkdown.setModePreview",
+        "key": "ctrl+alt+3",
+        "mac": "cmd+alt+3"
+      },
+      {
+        "command": "jinyMarkdown.setModePreview",
+        "key": "ctrl+shift+3",
+        "mac": "cmd+shift+3",
+        "when": "activeCustomEditorId == 'jinyMarkdown.customEditor'"
+      },
+      {
+        "command": "jinyMarkdown.cycleMode",
+        "key": "ctrl+alt+m",
+        "mac": "cmd+alt+m",
+        "when": "activeCustomEditorId == 'jinyMarkdown.customEditor'"
+      },
+      {
+        "command": "jinyMarkdown.cycleMode",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m",
+        "when": "activeCustomEditorId == 'jinyMarkdown.customEditor'"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "jinyMarkdown.openPreview",
+          "when": "editorLangId == markdown",
+          "group": "navigation"
+        },
+        {
+          "command": "jinyMarkdown.openEditor",
+          "when": "editorLangId == markdown",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "jinyMarkdown.openPreview",
+          "when": "editorLangId == markdown",
+          "group": "1_modification"
+        },
+        {
+          "command": "jinyMarkdown.openEditor",
+          "when": "editorLangId == markdown",
+          "group": "1_modification"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "jinyMarkdown.openEditor",
+          "when": "resourceExtname == .md || resourceExtname == .markdown",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Jiny Markdown Configuration",
+      "properties": {
+        "jinyMarkdown.defaultMode": {
+          "type": "string",
+          "enum": [
+            "split",
+            "preview",
+            "code"
+          ],
+          "default": "split",
+          "description": "Default view mode when opening Jiny Markdown (split, preview, or code)."
+        },
+        "jinyMarkdown.previewBackgroundColor": {
+          "type": "string",
+          "default": "#ffffff",
+          "description": "Background color of the preview pane (default: #ffffff)."
+        },
+        "jinyMarkdown.showLineNumbers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show line numbers on the left gutter of the preview."
+        },
+        "jinyMarkdown.fontSize": {
+          "type": "number",
+          "default": 15,
+          "description": "Font size for the editor and preview."
+        },
+        "jinyMarkdown.scrollSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Synchronize scrolling between source code and preview in split mode."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "compile": "node build.js",
+    "watch": "node build.js --watch",
+    "build": "node build.js --minify",
+    "package": "vsce package --no-dependencies --allow-missing-repository --skip-license"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^22.10.1",
+    "@types/turndown": "^5.0.5",
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@types/katex": "^0.16.8",
+    "highlight.js": "^11.10.0",
+    "katex": "^0.19.1",
+    "markdown-it": "^14.1.0",
+    "turndown": "^7.2.0"
+  }
+}

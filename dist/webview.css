@@ -1,0 +1,297 @@
+:root {
+  --primary-color: #2563eb;
+  --text-main: #1f2328;
+  --text-muted: #6b7280;
+  --preview-bg: #ffffff;
+  --gutter-bg: #f9fafb;
+  --gutter-color: #9ca3af;
+  --gutter-border: #e5e7eb;
+  --block-hover-bg: rgba(37, 99, 235, 0.03);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  color: var(--text-main);
+  background: var(--preview-bg); /* Pure White #ffffff */
+}
+
+#app, .pure-preview-app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--preview-bg);
+}
+
+/* ==========================================================================
+   Pure Preview Scroll Container (White Background #ffffff)
+   ========================================================================== */
+.preview-scroll-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--preview-bg);
+  position: relative;
+}
+
+/* Line Numbers Gutter on the Left */
+.preview-gutter {
+  width: 52px;
+  min-height: 100%;
+  background: var(--gutter-bg);
+  border-right: 1px solid var(--gutter-border);
+  color: var(--gutter-color);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+  user-select: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.preview-line-num {
+  position: absolute;
+  right: 8px;
+  color: var(--gutter-color);
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease, font-weight 0.15s ease;
+}
+
+.preview-line-num:hover,
+.preview-line-num.active {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Typora-Style Document Body
+   ========================================================================== */
+.preview-content {
+  flex: 1;
+  padding: 24px 44px 80px 28px;
+  min-height: 100%;
+  background: var(--preview-bg);
+  outline: none;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-main);
+  max-width: 900px;
+  position: relative;
+}
+
+/* Block styling with line mapping */
+.sync-line-block {
+  position: relative;
+  border-radius: 4px;
+  transition: background-color 0.1s ease;
+}
+
+.sync-line-block:hover {
+  background-color: var(--block-hover-bg);
+}
+
+/* Headings */
+.preview-content h1,
+.preview-content h2,
+.preview-content h3,
+.preview-content h4,
+.preview-content h5,
+.preview-content h6 {
+  margin-top: 1.3em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #111827;
+}
+
+.preview-content h1:first-child,
+.preview-content h2:first-child {
+  margin-top: 0;
+}
+
+.preview-content h1 {
+  font-size: 1.9em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.preview-content h2 {
+  font-size: 1.45em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.preview-content h3 { font-size: 1.2em; }
+.preview-content h4 { font-size: 1.05em; }
+.preview-content h5 { font-size: 0.9em; }
+.preview-content h6 { font-size: 0.85em; color: var(--text-muted); }
+
+.preview-content p {
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+
+.preview-content strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+.preview-content em {
+  font-style: italic;
+}
+
+.preview-content blockquote {
+  padding: 6px 14px;
+  color: #4b5563;
+  border-left: 3px solid #2563eb;
+  margin: 0 0 16px 0;
+  background: #f8fafc;
+  border-radius: 0 6px 6px 0;
+}
+
+.preview-content ul,
+.preview-content ol {
+  margin-top: 0;
+  margin-bottom: 14px;
+  padding-left: 2em;
+}
+
+.preview-content li {
+  margin-bottom: 4px;
+}
+
+/* Inline Code & Code Blocks */
+.preview-content code {
+  padding: 0.2em 0.4em;
+  font-size: 85%;
+  background-color: #f3f4f6;
+  border-radius: 5px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  color: #1e293b;
+}
+
+.preview-content pre {
+  margin: 8px 0 16px 0;
+  padding: 14px 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.55;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.preview-content pre code {
+  padding: 0;
+  background-color: transparent;
+  font-size: 100%;
+  color: inherit;
+}
+
+/* Tables */
+.preview-content table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin: 12px 0 18px 0;
+  width: 100%;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.preview-content table th,
+.preview-content table td {
+  padding: 8px 14px;
+  border: 1px solid #e5e7eb;
+}
+
+.preview-content table th {
+  font-weight: 600;
+  background-color: #f9fafb;
+}
+
+.preview-content table tr:nth-child(2n) {
+  background-color: #fafbfd;
+}
+
+/* Horizontal Rule */
+.preview-content hr {
+  height: 2px;
+  margin: 24px 0;
+  background-color: #e5e7eb;
+  border: 0;
+}
+
+/* Checkboxes (Task lists) */
+.preview-content input[type="checkbox"] {
+  margin: 0 0.4em 0.2em -1.3em;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+/* KaTeX Math Formulas */
+.katex-display {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+}
+
+.katex-inline-wrapper {
+  display: inline-block;
+  padding: 0 2px;
+}
+
+.katex-block-wrapper {
+  margin: 14px 0;
+  text-align: center;
+}
+
+/* Links & Images */
+.preview-content a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.preview-content a:hover {
+  text-decoration: underline;
+}
+
+.preview-content img {
+  max-width: 100%;
+  border-radius: 6px;
+  margin: 8px 0;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
