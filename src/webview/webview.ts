@@ -140,5 +140,13 @@ window.addEventListener('message', (event) => {
   }
 });
 
+// Immediate render from embedded HTML data
+const win = window as any;
+if (win.__INITIAL_TEXT__ !== undefined) {
+  currentText = win.__INITIAL_TEXT__ || '';
+  currentBaseUri = win.__INITIAL_BASE_URI__ || '';
+  renderPreview(currentText);
+}
+
 // Tell VS Code webview is ready
 vscode.postMessage({ type: 'ready' });

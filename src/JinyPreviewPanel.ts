@@ -41,8 +41,7 @@ export class JinyPreviewPanel {
           docDir,
           parentDir,
           grandParentDir,
-          ...workspaceRoots,
-          vscode.Uri.file('/')
+          ...workspaceRoots
         ]
       }
     );
@@ -63,14 +62,9 @@ export class JinyPreviewPanel {
     const defaultMode = (vscode.workspace.getConfiguration('jinyMarkdown').get<string>('defaultMode') || 'split') as ViewMode;
     this.currentMode = defaultMode;
 
-    this.panel.webview.html = getWebviewContent(
-      this.panel.webview,
-      this.extensionUri,
-      this.document.uri
-    );
-
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
+    // Register message handler BEFORE assigning HTML
     this.panel.webview.onDidReceiveMessage(
       (message) => {
         switch (message.type) {
@@ -113,6 +107,16 @@ export class JinyPreviewPanel {
       null,
       this.disposables
     );
+
+    // Set HTML with embedded initial content
+    this.panel.webview.html = getWebviewContent(
+      this.panel.webview,
+      this.extensionUri,
+      this.document
+    );
+
+    // Trigger immediate update
+    this.update();
   }
 
   public setMode(mode: ViewMode) {

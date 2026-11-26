@@ -44,16 +44,9 @@ export class JinyEditorProvider implements vscode.CustomTextEditorProvider {
         docDir,
         parentDir,
         grandParentDir,
-        ...workspaceRoots,
-        vscode.Uri.file('/')
+        ...workspaceRoots
       ]
     };
-
-    webviewPanel.webview.html = getWebviewContent(
-      webviewPanel.webview,
-      this.context.extensionUri,
-      document.uri
-    );
 
     JinyEditorProvider.activePanel = { webviewPanel, mode: currentMode };
 
@@ -71,7 +64,7 @@ export class JinyEditorProvider implements vscode.CustomTextEditorProvider {
 
     const getBaseUri = () => webviewPanel.webview.asWebviewUri(docDir).toString();
 
-    // Handle incoming messages from the webview
+    // Handle incoming messages from the webview BEFORE setting HTML
     webviewPanel.webview.onDidReceiveMessage((message) => {
       switch (message.type) {
         case 'ready':
@@ -102,6 +95,13 @@ export class JinyEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.onDidDispose(() => {
       changeDocumentSubscription.dispose();
     });
+
+    // Set HTML with embedded initial content
+    webviewPanel.webview.html = getWebviewContent(
+      webviewPanel.webview,
+      this.context.extensionUri,
+      document
+    );
   }
 
   private updateTextDocument(document: vscode.TextDocument, text: string) {
