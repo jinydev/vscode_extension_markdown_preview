@@ -48,7 +48,7 @@ if (btnZoomReset) {
   btnZoomReset.addEventListener('click', () => setZoom(1.0));
 }
 
-// Keyboard shortcuts for zoom (Cmd/Ctrl +, -, 0)
+// Keyboard shortcuts for zoom (Cmd/Ctrl +, -, 0) & Save (Cmd/Ctrl + S)
 window.addEventListener('keydown', (e) => {
   const isCmdOrCtrl = e.metaKey || e.ctrlKey;
   if (isCmdOrCtrl) {
@@ -61,6 +61,23 @@ window.addEventListener('keydown', (e) => {
     } else if (e.key === '0') {
       e.preventDefault();
       setZoom(1.0);
+    } else if (e.key === 's' || e.key === 'S') {
+      e.preventDefault();
+      // Immediately flush any pending markdown conversion before saving
+      if (previewEditTimer) {
+        clearTimeout(previewEditTimer);
+      }
+      try {
+        const newMarkdown = htmlToMd.turndown(previewContent.innerHTML);
+        currentText = newMarkdown;
+        vscode.postMessage({
+          type: 'updateText',
+          text: currentText
+        });
+      } catch (err) {
+        console.error('Error updating text on save:', err);
+      }
+      vscode.postMessage({ type: 'saveDocument' });
     }
   }
 });
@@ -243,6 +260,47 @@ previewContent.addEventListener('input', () => {
       }
     }, 1500);
   }, 200);
+});
+
+// Auto-transform '---' into horizontal rule <hr> on Enter (Typora Live UX)
+previewContent.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      let node: Node | null = sel.anchorNode;
+      let block: HTMLElement | null = null;
+      while (node && node !== previewContent) {
+        if (node instanceof HTMLElement && (node.tagName === 'P' || node.tagName === 'DIV' || node.hasAttribute('data-line'))) {
+          block = node;
+          break;
+        }
+        node = node.parentNode;
+      }
+
+      if (block) {
+        const text = block.textContent?.trim() || '';
+        if (/^(-{3,}|\*{3,}|_{3,})$/.test(text)) {
+          e.preventDefault();
+          const hr = document.createElement('hr');
+          hr.className = 'sync-line-block';
+          const newP = document.createElement('p');
+          newP.innerHTML = '<br>';
+
+          block.parentNode?.replaceChild(hr, block);
+          hr.after(newP);
+
+          const range = document.createRange();
+          range.setStart(newP, 0);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+
+          previewContent.dispatchEvent(new Event('input', { bubbles: true }));
+          return;
+        }
+      }
+    }
+  }
 });
 
 // Track active cursor line as user navigates inside Preview

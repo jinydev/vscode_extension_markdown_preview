@@ -9,6 +9,41 @@ export function createHtmlToMarkdownConverter() {
     emDelimiter: '*'
   });
 
+  // Custom escape override: prevent markdown divider markers (---, ***, ___) from being escaped to \---
+  const defaultEscape = turndown.escape.bind(turndown);
+  turndown.escape = function (string: string) {
+    if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(string)) {
+      return string.trim();
+    }
+    let res = defaultEscape(string);
+    res = res.replace(/^\\(-{3,})/gm, '$1');
+    res = res.replace(/^\\(\*{3,})/gm, '$1');
+    res = res.replace(/^\\(_{3,})/gm, '$1');
+    return res;
+  };
+
+  // Explicit Horizontal Rule handling
+  turndown.addRule('horizontalRule', {
+    filter: 'hr',
+    replacement: function () {
+      return '\n\n---\n\n';
+    }
+  });
+
+  // Handle horizontal divider typed as paragraph/div (e.g. <p>---</p> or <div>---</div>)
+  turndown.addRule('horizontalRuleParagraph', {
+    filter: function (node) {
+      if (node.nodeName === 'P' || node.nodeName === 'DIV') {
+        const text = node.textContent?.trim() || '';
+        return /^(-{3,}|\*{3,}|_{3,})$/.test(text);
+      }
+      return false;
+    },
+    replacement: function () {
+      return '\n\n---\n\n';
+    }
+  });
+
   // Preserve Front Matter block
   turndown.addRule('frontMatter', {
     filter: function (node) {

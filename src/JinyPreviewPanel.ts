@@ -74,6 +74,9 @@ export class JinyPreviewPanel {
           case 'updateText':
             this.updateTextDocument(message.text);
             break;
+          case 'saveDocument':
+            this.saveDocument();
+            break;
           case 'revealLineInEditor':
             if (typeof message.line === 'number') {
               this.revealLineInEditor(message.line);
@@ -176,6 +179,17 @@ export class JinyPreviewPanel {
       const range = new vscode.Range(pos, pos);
       editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
     }
+  }
+
+  private async saveDocument() {
+    try {
+      await this.document.save();
+    } catch (e) {
+      console.error('Failed to save document:', e);
+    }
+    try {
+      await vscode.commands.executeCommand('workbench.action.files.save');
+    } catch (_) {}
   }
 
   private updateTextDocument(text: string) {
