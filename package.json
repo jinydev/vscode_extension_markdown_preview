@@ -2,12 +2,12 @@
   "name": "jiny-markdown",
   "displayName": "Jiny Markdown - Live Editor & preview",
   "description": "Typora-like WYSIWYG markdown editor and split preview with white background, line numbers, and bidirectional sync.",
-  "version": "1.0.4",
-  "publisher": "jiny",
+  "version": "1.0.5",
+  "publisher": "jinydev",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jiny/jiny-markdown"
+    "url": "https://github.com/jinydev/vscode_extension_markdown_preview.git"
   },
   "icon": "media/icon.png",
   "engines": {
