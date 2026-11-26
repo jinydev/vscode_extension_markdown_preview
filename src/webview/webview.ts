@@ -13,6 +13,9 @@ let currentText = '';
 let currentBaseUri = '';
 let isUserEditingInPreview = false;
 let previewEditTimer: any = null;
+let zoomLevel = 1.0;
+let lastReportedLine = -1;
+let lineSyncDebounce: any = null;
 
 const mdRenderer = createMarkdownRenderer(() => currentBaseUri);
 const htmlToMd = createHtmlToMarkdownConverter();
@@ -21,6 +24,116 @@ const htmlToMd = createHtmlToMarkdownConverter();
 const previewContent = document.getElementById('preview-content') as HTMLDivElement;
 const previewGutter = document.getElementById('preview-gutter') as HTMLDivElement;
 const previewScroll = document.getElementById('preview-scroll') as HTMLDivElement;
+const btnZoomIn = document.getElementById('btn-zoom-in') as HTMLButtonElement;
+const btnZoomOut = document.getElementById('btn-zoom-out') as HTMLButtonElement;
+const btnZoomReset = document.getElementById('btn-zoom-reset') as HTMLButtonElement;
+
+// Zoom functionality
+function setZoom(level: number) {
+  zoomLevel = Math.max(0.5, Math.min(2.5, Math.round(level * 10) / 10));
+  previewScroll.style.zoom = String(zoomLevel);
+  if (btnZoomReset) {
+    btnZoomReset.textContent = `${Math.round(zoomLevel * 100)}%`;
+  }
+  updateGutters();
+}
+
+if (btnZoomIn) {
+  btnZoomIn.addEventListener('click', () => setZoom(zoomLevel + 0.1));
+}
+if (btnZoomOut) {
+  btnZoomOut.addEventListener('click', () => setZoom(zoomLevel - 0.1));
+}
+if (btnZoomReset) {
+  btnZoomReset.addEventListener('click', () => setZoom(1.0));
+}
+
+// Keyboard shortcuts for zoom (Cmd/Ctrl +, -, 0)
+window.addEventListener('keydown', (e) => {
+  const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+  if (isCmdOrCtrl) {
+    if (e.key === '=' || e.key === '+') {
+      e.preventDefault();
+      setZoom(zoomLevel + 0.1);
+    } else if (e.key === '-' || e.key === '_') {
+      e.preventDefault();
+      setZoom(zoomLevel - 0.1);
+    } else if (e.key === '0') {
+      e.preventDefault();
+      setZoom(1.0);
+    }
+  }
+});
+
+// Wheel zoom with Cmd/Ctrl
+window.addEventListener('wheel', (e) => {
+  if (e.metaKey || e.ctrlKey) {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      setZoom(zoomLevel + 0.05);
+    } else {
+      setZoom(zoomLevel - 0.05);
+    }
+  }
+}, { passive: false });
+
+// Report active line in preview to left code editor
+function reportActiveLineToEditor() {
+  if (lineSyncDebounce) {
+    clearTimeout(lineSyncDebounce);
+  }
+  lineSyncDebounce = setTimeout(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    let node: Node | null = sel.anchorNode;
+    let block: HTMLElement | null = null;
+    while (node && node !== previewContent) {
+      if (node instanceof HTMLElement && node.hasAttribute('data-line')) {
+        block = node;
+        break;
+      }
+      node = node.parentNode;
+    }
+    if (block) {
+      const line = parseInt(block.getAttribute('data-line') || '0', 10);
+      if (line > 0 && line !== lastReportedLine) {
+        lastReportedLine = line;
+        vscode.postMessage({
+          type: 'revealLineInEditor',
+          line: line
+        });
+      }
+    }
+  }, 120);
+}
+
+// Smooth scroll preview to matching line from code editor
+function scrollToEditorLine(targetLine: number) {
+  if (isUserEditingInPreview) return;
+  const blocks = Array.from(previewContent.querySelectorAll<HTMLElement>('[data-line]'));
+  if (!blocks.length) return;
+
+  let bestBlock: HTMLElement | null = null;
+  let bestLine = -1;
+  for (const b of blocks) {
+    const line = parseInt(b.getAttribute('data-line') || '0', 10);
+    if (line <= targetLine && line >= bestLine) {
+      bestLine = line;
+      bestBlock = b;
+    }
+  }
+  if (!bestBlock && blocks.length > 0) {
+    bestBlock = blocks[0];
+  }
+
+  if (bestBlock) {
+    bestBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    bestBlock.classList.add('active-sync-highlight');
+    setTimeout(() => {
+      bestBlock?.classList.remove('active-sync-highlight');
+    }, 1200);
+  }
+}
 
 // Render markdown to preview while strictly preserving scroll position
 function renderPreview(text: string) {
@@ -100,6 +213,7 @@ previewContent.addEventListener('blur', () => {
 // Event: User edits directly inside Preview (Typora Live Editing)
 previewContent.addEventListener('input', () => {
   isUserEditingInPreview = true;
+  reportActiveLineToEditor();
 
   if (previewEditTimer) {
     clearTimeout(previewEditTimer);
@@ -129,6 +243,15 @@ previewContent.addEventListener('input', () => {
       }
     }, 1500);
   }, 200);
+});
+
+// Track active cursor line as user navigates inside Preview
+previewContent.addEventListener('keyup', () => {
+  reportActiveLineToEditor();
+});
+
+previewContent.addEventListener('mouseup', () => {
+  reportActiveLineToEditor();
 });
 
 // Checkbox click support
@@ -170,6 +293,19 @@ window.addEventListener('message', (event) => {
       currentText = message.text || '';
       // Re-render HTML while strictly maintaining scroll position
       renderPreview(currentText);
+
+      // If update was triggered from code editor, sync scroll to the active line being edited
+      if (typeof message.activeLine === 'number') {
+        requestAnimationFrame(() => {
+          scrollToEditorLine(message.activeLine);
+        });
+      }
+      break;
+
+    case 'syncFromEditorLine':
+      if (typeof message.line === 'number') {
+        scrollToEditorLine(message.line);
+      }
       break;
   }
 });

@@ -74,6 +74,11 @@ export class JinyPreviewPanel {
           case 'updateText':
             this.updateTextDocument(message.text);
             break;
+          case 'revealLineInEditor':
+            if (typeof message.line === 'number') {
+              this.revealLineInEditor(message.line);
+            }
+            break;
         }
       },
       null,
@@ -85,6 +90,25 @@ export class JinyPreviewPanel {
       (e) => {
         if (e.document.uri.toString() === this.document.uri.toString()) {
           this.update();
+        }
+      },
+      null,
+      this.disposables
+    );
+
+    // Track cursor selection changes in editor -> sync to preview
+    vscode.window.onDidChangeTextEditorSelection(
+      (e) => {
+        if (
+          e.textEditor &&
+          e.textEditor.document.uri.toString() === this.document.uri.toString() &&
+          e.selections.length > 0
+        ) {
+          const activeLine = e.selections[0].active.line + 1;
+          this.panel.webview.postMessage({
+            type: 'syncFromEditorLine',
+            line: activeLine
+          });
         }
       },
       null,
@@ -129,12 +153,29 @@ export class JinyPreviewPanel {
   public update() {
     const docDir = path.dirname(this.document.uri.fsPath);
     const baseUri = this.panel.webview.asWebviewUri(vscode.Uri.file(docDir)).toString();
+    const editor = vscode.window.visibleTextEditors.find(
+      (e) => e.document.uri.toString() === this.document.uri.toString()
+    );
+    const activeLine = editor && editor.selections.length > 0 ? editor.selection.active.line + 1 : undefined;
 
     this.panel.webview.postMessage({
       type: 'update',
       text: this.document.getText(),
-      baseUri
+      baseUri,
+      activeLine
     });
+  }
+
+  private revealLineInEditor(line: number) {
+    const editor = vscode.window.visibleTextEditors.find(
+      (e) => e.document.uri.toString() === this.document.uri.toString()
+    );
+    if (editor) {
+      const lineIndex = Math.max(0, line - 1);
+      const pos = new vscode.Position(lineIndex, 0);
+      const range = new vscode.Range(pos, pos);
+      editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+    }
   }
 
   private updateTextDocument(text: string) {

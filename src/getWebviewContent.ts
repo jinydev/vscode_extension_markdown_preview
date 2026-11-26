@@ -27,10 +27,18 @@ export function getWebviewContent(
 </head>
 <body>
   <div id="app" class="pure-preview-app">
+    <!-- Pure Preview Scroll Container (Vertical & Horizontal Scroll) -->
     <main id="preview-scroll" class="preview-scroll-container">
       <div id="preview-gutter" class="preview-gutter"></div>
       <article id="preview-content" class="preview-content" contenteditable="true" spellcheck="false"></article>
     </main>
+
+    <!-- Floating Zoom Controls -->
+    <div class="zoom-controls" id="zoom-controls" role="toolbar" aria-label="Zoom Controls">
+      <button id="btn-zoom-out" class="zoom-btn" title="Zoom Out (Cmd -)">−</button>
+      <button id="btn-zoom-reset" class="zoom-level" title="Reset Zoom (Cmd 0)">100%</button>
+      <button id="btn-zoom-in" class="zoom-btn" title="Zoom In (Cmd +)">+</button>
+    </div>
   </div>
 
   <script nonce="${nonce}">
