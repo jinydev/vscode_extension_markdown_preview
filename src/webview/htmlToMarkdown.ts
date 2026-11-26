@@ -19,6 +19,8 @@ export function createHtmlToMarkdownConverter() {
     res = res.replace(/^\\(-{3,})/gm, '$1');
     res = res.replace(/^\\(\*{3,})/gm, '$1');
     res = res.replace(/^\\(_{3,})/gm, '$1');
+    // Prevent double-escaped bold asterisks (**word**) from becoming \*\*word\*\*
+    res = res.replace(/\\\*\\\*/g, '**');
     return res;
   };
 
@@ -79,15 +81,33 @@ export function createHtmlToMarkdownConverter() {
     }
   });
 
+  // Preserve empty image placeholder badges
+  turndown.addRule('emptyImageBadge', {
+    filter: function (node) {
+      return (
+        node.nodeName === 'SPAN' &&
+        (Boolean(node.classList?.contains('empty-image-badge')) || node.hasAttribute('data-empty-image'))
+      );
+    },
+    replacement: function (_content, node) {
+      const el = node as HTMLElement;
+      const alt = el.getAttribute('data-alt') || '';
+      return `![${alt}]()`;
+    }
+  });
+
   // Preserve original relative image sources
   turndown.addRule('imagePreserveOriginal', {
     filter: 'img',
     replacement: function (_content, node) {
       const img = node as HTMLImageElement;
       const originalSrc = img.getAttribute('data-original-src');
-      const src = originalSrc || img.getAttribute('src') || '';
+      const src = originalSrc !== null ? originalSrc : (img.getAttribute('src') || '');
       const alt = img.getAttribute('alt') || '';
       const title = img.getAttribute('title');
+      if (!src || src.trim() === '') {
+        return `![${alt}]()`;
+      }
       return `![${alt}](${src}${title ? ` "${title}"` : ''})`;
     }
   });

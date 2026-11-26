@@ -101,23 +101,30 @@ export function createMarkdownRenderer(getBaseUri?: () => string) {
     return defaultListItemOpen(tokens, idx, options, env, self);
   };
 
-  // Image handling: resolve relative paths and preserve original src
+  // Image handling: resolve relative paths, preserve original src, and handle empty image links
   const defaultImageRender = md.renderer.rules.image || ((tokens: any[], idx: number, options: any, env: any, self: any) => self.renderToken(tokens, idx, options));
   md.renderer.rules.image = (tokens: any[], idx: number, options: any, env: any, self: any) => {
     const token = tokens[idx];
     const srcIndex = token.attrIndex('src');
-    if (srcIndex >= 0) {
-      const originalSrc = token.attrs[srcIndex][1];
-      token.attrSet('data-original-src', originalSrc);
+    const originalSrc = srcIndex >= 0 ? (token.attrs[srcIndex][1] || '').trim() : '';
 
-      // If it's a relative path, resolve it with baseUri
-      if (!/^(https?:|data:|vscode-webview:)/i.test(originalSrc) && getBaseUri) {
-        const base = getBaseUri();
-        if (base) {
-          const cleanRel = originalSrc.replace(/^\.\//, '');
-          const separator = base.endsWith('/') ? '' : '/';
-          token.attrs[srcIndex][1] = `${base}${separator}${cleanRel}`;
-        }
+    // If src is empty (e.g. ![]() or ![alt]()), render a friendly placeholder badge
+    if (!originalSrc) {
+      const altText = self.renderInlineAsText(token.children || [], options, env) || '';
+      const escapedAlt = md.utils.escapeHtml(altText);
+      const displayText = altText ? `이미지 링크가 없습니다 (${escapedAlt})` : '이미지 링크가 없습니다';
+      return `<span class="empty-image-badge sync-line-block" contenteditable="false" data-empty-image="true" data-alt="${escapedAlt}"><svg class="empty-image-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline><line x1="2" y1="2" x2="22" y2="22"></line></svg><span class="empty-image-text">${displayText}</span></span>`;
+    }
+
+    token.attrSet('data-original-src', originalSrc);
+
+    // If it's a relative path, resolve it with baseUri
+    if (!/^(https?:|data:|vscode-webview:)/i.test(originalSrc) && getBaseUri) {
+      const base = getBaseUri();
+      if (base) {
+        const cleanRel = originalSrc.replace(/^\.\//, '');
+        const separator = base.endsWith('/') ? '' : '/';
+        token.attrs[srcIndex][1] = `${base}${separator}${cleanRel}`;
       }
     }
     return defaultImageRender(tokens, idx, options, env, self);
