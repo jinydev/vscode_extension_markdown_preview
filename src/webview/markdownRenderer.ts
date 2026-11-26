@@ -6,7 +6,7 @@ export function createMarkdownRenderer(getBaseUri?: () => string) {
   const md = new MarkdownIt({
     html: true,
     linkify: true,
-    typographer: true,
+    typographer: false, // Maintain exact verbatim characters without auto-converting .. into ellipsis (…)
     breaks: true,
     highlight: function (str: string, lang: string) {
       if (lang && hljs.getLanguage(lang)) {
